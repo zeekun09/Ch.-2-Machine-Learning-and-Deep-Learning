@@ -1,0 +1,189 @@
+Import Library
+
+import pandas as pd
+import numpy as np
+
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split as tts
+from sklearn.model_selection import GridSearchCV
+
+from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
+
+Datasets
+
+df = pd.read_csv('https://raw.githubusercontent.com/Rietaros/kampus_merdeka/main/SC_HW1_bank_data.csv')
+df.columns
+
+# TODO: Hilangkan kolom yang tidak relevan untuk pemodelan
+df = df[['Geography', 'Gender', 'Age', 'Tenure',
+       'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember',
+       'EstimatedSalary', 'Exited']].copy()
+
+Preprocessing
+
+# TODO: Lakukan One-Hot Encoder untuk data kategorikal, dengan fungsi pd.get_dummies
+df = pd.get_dummies(df, columns=['Geography', 'Gender'], drop_first=True)
+
+# TODO: Pisahkan fitur (X) dengan target (Y), dimana Y merujuk ke kolom "Exited"
+X = df.drop('Exited', axis=1)
+y = df['Exited']
+
+scaler = MinMaxScaler() # TODO: Lakukan scaling atau normalisasi
+X_transform = scaler.fit_transform(X)
+
+# Bagian ini digunakan jika Anda melakukan scaling atau normalisasi.
+# Jika tidak, code ini bisa dilewati dan diganti dengan code yang ada di dalam comment.
+
+X_transform = pd.DataFrame(X_transform, columns = X.columns)
+# X_transform = X.copy()
+
+Train-Test Split
+
+X_train ,X_test, y_train, y_test = tts(X_transform, y, test_size = 0.25, random_state = 123)
+
+Model 1
+
+# [ PERTANYAAN ]
+# TODO: Jelaskan secara singkat model #1 yang Anda gunakan.
+
+[ ANSWER HERE ]
+Random Forest Classifier
+ini adalah algoritma pembelajaran mesin ansambel yang menggunakan beberapa pohon keputusan untuk mengklasifikasikan data. untuk akurasi cenderung tinggi dan dapat mengatasi masalah overfitting dengan baik.untuk bagian kompleks menengah hingga tinggi, tergantung pada jumlah pohon dan kedalaman maksimum biasanya digunakan pada masalah klasifikasi dan regresi dengan data yang besar dan kompleks.
+
+from sklearn.ensemble import RandomForestClassifier
+
+# Define the model and parameters
+model1 = RandomForestClassifier()
+params1 = {
+    'n_estimators': [100, 200, 300],
+    'max_depth': [None, 10, 20, 30],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+
+# Perform hyperparameter tuning
+grid1 = GridSearchCV(
+    estimator=model1,
+    param_grid=params1,
+    scoring='accuracy',
+    n_jobs=10,  # Use multiple cores
+    cv=10  # 10-fold cross-validation
+)
+
+grid1.fit(X_train, y_train)
+grid1.best_params_
+
+y_pred1 = grid1.predict(X_test)
+
+# Evaluation
+print(classification_report(y_test, y_pred1))
+print("Random Forest Classifier:")
+print(confusion_matrix(y_test, y_pred1))
+print("Accuracy: ")
+print(f"{accuracy_score(y_test, y_pred1)* 100:.2f}%")
+
+Model 2
+# [ PERTANYAAN ]
+# TODO: Jelaskan secara singkat model #2 yang Anda gunakan.
+
+[ ANSWER HERE ]
+Gradient Boosting Classifier
+ini adalah teknik pembelajaran mesin yang didasarkan pada peningkatan dalam ruang fungsional, yang targetnya adalah residu semu, bukan residu seperti pada peningkatan tradisional.. untuk Akurasi Umumnya tinggi dan mampu menangani fitur yang berinteraksi secara kompleks. Kompleksitasnya Tinggi. Memerlukan pengaturan hyperparameter yang cermat. Penggunaan Umumnya Kompetisi machine learning dan masalah klasifikasi yang kompleks.
+
+from sklearn.ensemble import GradientBoostingClassifier
+
+# Define the model and parameters
+model2 = GradientBoostingClassifier()
+params2 = {
+    'n_estimators': [100, 200, 300],
+    'learning_rate': [0.01, 0.1, 0.2],
+    'max_depth': [3, 4, 5],
+    'subsample': [0.8, 1.0]
+}
+
+# Perform hyperparameter tuning
+grid2 = GridSearchCV(
+    estimator=model2,
+    param_grid=params2,
+    scoring='accuracy',
+    n_jobs=10,  # Use multiple cores
+    cv=10  # 10-fold cross-validation
+)
+
+grid2.fit(X_train, y_train)
+grid2.best_params_
+
+y_pred2 = grid2.predict(X_test)
+
+# Evaluation
+print(classification_report(y_test, y_pred2))
+print("Gradient Boosting Classifier:")
+print(confusion_matrix(y_test, y_pred2))
+print("Accuracy: ")
+print(f"{accuracy_score(y_test, y_pred2)* 100:.2f}%")
+
+Model 3
+# [ PERTANYAAN ]
+# TODO: Jelaskan secara singkat model #3 yang Anda gunakan.
+
+[ ANSWER HERE ]
+Extra Trees Classifier
+Pohon ekstra berbeda dari pohon keputusan klasik dalam cara pembuatannya. Saat mencari pemisahan terbaik untuk memisahkan sampel node menjadi dua kelompok, pemisahan acak diambil untuk masing-masing fitur max_features yang dipilih secara acak dan pemisahan terbaik di antara fitur-fitur tersebut dipilih. Akurasi: Mirip dengan Random Forest, sering kali lebih cepat dalam pelatihan. Kompleksitas: Menengah hingga tinggi. Membangun banyak pohon secara acak. Penggunaan Umum: Masalah klasifikasi dengan fitur yang banyak dan kompleks.
+
+from sklearn.ensemble import ExtraTreesClassifier
+
+# Define the model and parameters
+model3 = ExtraTreesClassifier()
+params3 = {
+    'n_estimators': [100, 200, 300],
+    'max_features': ['sqrt', 'log2'],
+    'max_depth': [None, 10, 20, 30],
+    'min_samples_split': [2, 5, 10]
+}
+
+# Perform hyperparameter tuning
+grid3 = GridSearchCV(
+    estimator=model3,
+    param_grid=params3,
+    scoring='accuracy',
+    n_jobs=10,  # Use multiple cores
+    cv=10  # 10-fold cross-validation
+)
+
+grid3.fit(X_train, y_train)
+grid3.best_params_
+
+y_pred3 = grid3.predict(X_test)
+
+# Evaluation
+print(classification_report(y_test, y_pred3))
+print("Extra Trees Classifier:")
+print(confusion_matrix(y_test, y_pred3))
+print("Accuracy: ")
+print(f"{accuracy_score(y_test, y_pred3)* 100:.2f}%")
+
+Conclusion
+# [ PERTANYAAN ]
+# TODO: Tarik kesimpulan model mana yang terbaik beserta alasannya
+
+[ ANSWER HERE ]
+
+Akurasi
+Extra Trees Classifier memiliki akurasi yang mirip dengan Random Forest dan sering kali lebih cepat dalam pelatihan karena cara pembentukan pohon yang lebih acak.
+Random Forest Classifier juga menawarkan akurasi yang tinggi dan mampu menangani overfitting dengan baik.
+Gradient Boosting Classifier cenderung memiliki akurasi lebih tinggi dari kedua model sebelumnya, terutama dalam masalah klasifikasi yang kompleks karena kemampuannya mengoptimalkan kesalahan dari model sebelumnya.
+Kesimpulan:Gradient Boosting sering kali memberikan akurasi terbaik, terutama pada masalah klasifikasi yang kompleks, namun butuh tuning hyperparameter yang lebih cermat.
+
+Kompleksitas:
+Extra Trees Classifier dan Random Forest Classifier memiliki kompleksitas menengah hingga tinggi karena membangun banyak pohon, meskipun Random Forest lebih baik dalam menangani overfitting.
+Gradient Boosting Classifier memiliki kompleksitas yang paling tinggi karena setiap iterasi model berusaha memperbaiki kesalahan dari model sebelumnya, sehingga membutuhkan waktu lebih lama untuk melatih dan mengatur hyperparameter dengan hati-hati.
+Kesimpulan: Jika kompleksitas pelatihan adalah faktor kritis, Extra Trees mungkin menjadi pilihan yang lebih cepat dibandingkan dengan Random Forest dan Gradient Boosting.
+
+Penggunaan Umum
+Extra Trees Classifier dan Random Forest Classifier sering digunakan dalam masalah klasifikasi dengan fitur yang banyak dan kompleks.
+Gradient Boosting Classifier lebih sering digunakan dalam kompetisi machine learning atau masalah dengan interaksi fitur yang sangat kompleks karena performa yang superior dalam pengaturan yang tepat.
+Kesimpulan: Untuk masalah dengan fitur interaktif dan tujuan mencapai akurasi tertinggi, Gradient Boosting bisa menjadi pilihan terbaik, namun jika diperlukan model yang lebih sederhana atau cepat, Extra Trees atau Random Forest lebih sesuai.
+
+Jadi, Gradient Boosting Classifier adalah pilihan terbaik dari segi akurasi, terutama untuk masalah klasifikasi kompleks. Namun, jika Anda mengutamakan kecepatan pelatihan dengan akurasi yang mendekati, Extra Trees Classifier adalah pilihan yang solid, lebih cepat, dan kurang kompleks daripada Gradient Boosting.
