@@ -1,0 +1,167 @@
+Import Library
+
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
+from matplotlib import pyplot as plt
+
+Load Datasets
+housing = fetch_california_housing()
+print("Features name: {}".format(housing.feature_names))
+print("Features data:\n{}".format(housing.data))
+print("Target data:\n{}".format(housing.target)) # target is the house price
+
+# TODO: Ubah "features" dan "target" dari Numpy Array ke Pandas DataFrame
+features = housing.data  # Get the features data from the housing object
+target = housing.target  # Get the target data from the housing object
+
+datafr = pd.DataFrame(features, columns=housing.feature_names)
+datafr['target'] = target
+
+print(datafr.head())
+
+Train/Validation/Test Split
+# TODO: Pisahkan data menjadi train, validation, dan test
+# HINT: Pertama, pisahkan data menjadi train dan test.
+#       Selanjutnya, pisahkan data train menjadi dua, yaitu data train dan data validation.
+
+# Pisahkan features dan target dari dataframe
+X = datafr.drop('target', axis=1)  # Features
+y = datafr['target']  # Target
+
+# Pisahkan data menjadi train dan test
+x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Pisahkan data train menjadi train dan validation
+x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.2, random_state=42)
+
+print("x_train", x_train.shape, "y_train", y_train.shape)
+print("x_val", x_val.shape, "y_val", y_val.shape)
+print("x_test", x_test.shape, "y_test", y_test.shape)
+
+Standarization and Normalization
+# TODO: Lakukan standarisasi untuk data train, validation, dan test menggunakan StandardScaler()
+scaler = StandardScaler()
+x_train = scaler.fit_transform(x_train)
+x_val = scaler.transform(x_val)
+x_test = scaler.transform(x_test)
+
+# TODO: Lakukan normalisasi untuk data train, validation, dan test menggunakan MinMaxScaler()
+scaler_minmax = MinMaxScaler()
+x_train_norm = scaler_minmax.fit_transform(x_train)
+x_val_norm = scaler_minmax.transform(x_val)
+x_test_norm = scaler_minmax.transform(x_test)
+
+Advanced Setting
+Perform an advance split into multiple overlapping input (A and B), where input A consists of feature 0 to 4 and input B consists of feature 2 to 7.
+Perform an advance split into multiple overlapping input (A and B), where input A consists of feature 0 to 4 and input B consists of feature 2 to 7.
+
+Regression & Neural Network
+- - - - MOHON DIPERHATIKAN - - - -
+Keras/Tensorflow akan secara otomatis menambah layer neural network apabila kamu menjalankan ulang cell terkait. Jadi, silakan restart kernel dan jalankan ulang (rerun) semua kode agar hasil sesuai.
+(Step 1) Build the Model
+
+Yang dilakukan pada tahap ini:
+
+Tentukan parameters, yaitu weight dan bias
+Tentukan hyperparameters, yaitu total neurons di (1) input layers, (2) hidden layers, and (3) output layer
+Tentukan activation functions
+
+Lihat dokumentasi Keras Core Layers disini.
+Lihat dokumentasi Keras Model.summary() dan Model.get_layers() method disini.
+Lihat dokumentasi Keras Layer Initializer untuk weights (kernel_initializer) dan biases (bias_initializer) disini.
+Lihat dokumentasi Keras Activation Functions disini.
+
+Secara default di bagian .layers.Dense(), sudah ditentukan activation=None, kernel_initializer="glorot_uniform" dan bias_initializer="zeros".
+
+input_A = keras.layers.Input(shape=[5])
+input_B = keras.layers.Input(shape=[6])
+
+# TODO: Buat hidden layer pertama dengan 30 neuron dan ReLU sebagai activation function
+hidden1 = keras.layers.Dense(30, activation="relu")(input_A)
+
+# TODO: Buat hidden layer kedua dengan 30 neuron dan ReLU sebagai activation function
+hidden2 = keras.layers.Dense(30, activation="relu")(input_B)
+
+concat = keras.layers.concatenate([hidden1, hidden2])
+output = keras.layers.Dense(1, name="output")(concat)
+regression_model = keras.Model(inputs=[input_A, input_B], outputs=[output])
+regression_model.summary()
+
+(Step 2) Compile the Model
+
+Yang dilakukan pada tahap ini:
+
+Tentukan loss_function, optimizer (termasuk learning_rate dan momentum), dan metrics (opsional)
+Lihat dokumentasi Keras Model.compile() method disini.
+Lihat dokumentasi Keras Loss Function disini.
+Lihat dokumentasi Keras Optimizers disini.
+Lihat dokumentasi Keras Metrics disini.
+
+# TODO: Tentukan learning rate
+lr = 0.0001
+
+regression_model.compile(
+    loss=["mean_squared_error"],
+    optimizer=tf.keras.optimizers.Adam(learning_rate=lr)
+)
+
+Catatan: Di Keras-Tensorflow,
+
+loss="mean_squared_error" ekuivalen dengan loss=tf.keras.losses.MeanSquaredError()
+optimizer="Adam" ekuivalen dengan optimizer=tf.keras.optimizers.Adam()
+(Step 3) Train the Model
+
+Yang dilakukan pada tahap ini:
+
+Tentukan learning hyperparameters, yaitu epochs dan batch_size
+Inisiasi validation_data (opsional)
+Lihat dokumentasi Keras Model.fit() method disini.
+
+# TODO: Tentukan jumlah epoch (iterasi)
+n_epoch = 100
+
+# TODO: Tentukan jumlah batch
+batch_size = 60
+
+reg_result = regression_model.fit(
+    x=[x_train_A, x_train_B],
+    y=[y_train, y_train],
+    epochs=n_epoch, batch_size=batch_size,
+    validation_data=([x_val_A, x_val_B], [y_val, y_val])
+)
+
+pd.DataFrame(reg_result.history).plot(figsize=(15, 8))
+
+plt.title("Performance Result")
+plt.xlabel("Epochs")
+plt.ylabel("Scores")
+plt.grid(True)
+plt.show()
+
+- - - STOP, CEK DULU! - - - -
+Sebelum melakukan evaluasi dan penyimpanan model, pastikan val_loss berada dibawah 0.50 dan tidak terjadi overfitting.
+Silakan ulangi langkah diatas sebagai langkah hyperparameter tuning jika terjadi.
+
+(Step 4) Evaluate the Model with Test Data
+
+Lihat dokumentasi Keras Model.evaluate() method disini.
+regression_model.evaluate([x_test_A, x_test_B], [y_test, y_test])
+
+(Step 4) Save and Reload the Model
+# TODO: Berikan nama file untuk model, diakhiri dengan ekstensi .keras
+filename = "02-Kelompok H-3.keras"
+
+# save the model into your local storage
+regression_model.save(filename)
+
+# TODO: Reload model dan lakukan prediksi dengan data baru (x_new_A dan x_new_B)
+this_model = tf.keras.models.load_model(filename)
+this_model.predict([x_new_A, x_new_B])
+
